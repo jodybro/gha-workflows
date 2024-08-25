@@ -1,0 +1,28 @@
+name: test-reuse
+
+on:
+  workflow_call:
+    inputs:
+      minimum_version:
+        required: true
+        type: string
+
+jobs:
+  version_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check version
+        run: |
+          current_version="1.2.3"  # Replace with your actual version
+          if [[ "${{ inputs.minimum_version }}" != $(echo -e "${{ inputs.minimum_version }}\n$current_version" | sort -V | head -n1) ]]; then
+            echo "Error: Minimum version requirement not met. Please update to at least version ${{ inputs.minimum_version }}."
+            exit 1
+          fi
+
+  reusable_job:
+    needs: version_check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run a one-line script
+        run: echo "Hello from reusable workflow"
