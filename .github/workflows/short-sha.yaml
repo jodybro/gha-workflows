@@ -1,1 +1,30 @@
+
 name: Get short SHA of commit
+
+on:
+  workflow_call:
+    inputs:
+      minimum_version:
+        required: true
+        type: string
+
+jobs:
+  version_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check version
+        run: |
+          current_version="0.0.1"  # Replace with your actual version
+          if [[ "${{ inputs.minimum_version }}" != $(echo -e "${{ inputs.minimum_version }}\n$current_version" | sort -V | head -n1) ]]; then
+            echo "Error: Minimum version requirement not met. Please update to at least version ${{ inputs.minimum_version }}."
+            exit 1
+          fi
+
+  get_short_sha:
+    needs: version_check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Get short SHA
+        id: short_sha
+        run: echo "COMMIT_SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
